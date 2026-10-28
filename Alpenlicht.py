@@ -59,7 +59,7 @@ if _DATA_DIR:
     os.makedirs(_DATA_DIR, exist_ok=True)
 DB_PATH = os.path.join(_DATA_DIR or HERE, "alpenlicht.db")
 PORT = int(os.environ.get("ALPENLICHT_PORT") or os.environ.get("PORT") or "8000")
-VERSION = "6.3"
+VERSION = "6.4"
 PROTECT_DASHBOARD = os.environ.get("ALPENLICHT_PASSWORD") == "1"
 HOST = os.environ.get("ALPENLICHT_HOST", "127.0.0.1")
 STRIPE_BASE = os.environ.get("ALPENLICHT_STRIPE_BASE", "https://api.stripe.com")          # à incrémenter à chaque livraison
@@ -26295,7 +26295,6 @@ def stripe_create_checkout(order, product):
                "&session_id={CHECKOUT_SESSION_ID}")
     params = {
         "mode": "payment",
-        "payment_method_types[0]": "card",
         "line_items[0][quantity]": "1",
         "line_items[0][price_data][currency]": CURRENCY.lower(),
         "line_items[0][price_data][unit_amount]": str(order["amount_cents"]),
