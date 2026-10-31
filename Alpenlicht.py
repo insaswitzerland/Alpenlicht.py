@@ -59,7 +59,7 @@ if _DATA_DIR:
     os.makedirs(_DATA_DIR, exist_ok=True)
 DB_PATH = os.path.join(_DATA_DIR or HERE, "alpenlicht.db")
 PORT = int(os.environ.get("ALPENLICHT_PORT") or os.environ.get("PORT") or "8000")
-VERSION = "6.4"
+VERSION = "6.5"
 PROTECT_DASHBOARD = os.environ.get("ALPENLICHT_PASSWORD") == "1"
 HOST = os.environ.get("ALPENLICHT_HOST", "127.0.0.1")
 STRIPE_BASE = os.environ.get("ALPENLICHT_STRIPE_BASE", "https://api.stripe.com")          # à incrémenter à chaque livraison
@@ -26196,6 +26196,12 @@ def new_ref():
 # --------------------------------------------------------------------------
 # STRIPE — encaissement réel
 # --------------------------------------------------------------------------
+def _est_cle_secrete(valeur):
+    """Vrai pour une clé secrète utilisable : sk_ (complète) ou rk_ (restreinte)."""
+    v = _nettoyer(valeur)
+    return v.startswith("sk_") or v.startswith("rk_")
+
+
 def _nettoyer(valeur):
     """Enlève espaces, guillemets et retour à la ligne collés par erreur."""
     return str(valeur or "").strip().strip('"').strip("'").strip()
@@ -26210,11 +26216,11 @@ def stripe_key():
     3. sinon, la clé enregistrée dans le tableau de bord.
     """
     env_key = _nettoyer(os.environ.get("ALPENLICHT_STRIPE_KEY", ""))
-    if env_key.startswith("sk_"):
+    if _est_cle_secrete(env_key):
         return env_key
     for _nom, _valeur in os.environ.items():
         candidat = _nettoyer(_valeur)
-        if candidat.startswith("sk_live_") or candidat.startswith("sk_test_"):
+        if any(candidat.startswith(p) for p in ("sk_live_", "sk_test_", "rk_live_", "rk_test_")):
             return candidat
     return _nettoyer(setting("stripe_secret_key", ""))
 
@@ -26223,12 +26229,12 @@ def stripe_diag():
     """État détaillé de la configuration Stripe, sans jamais révéler la clé."""
     brut = os.environ.get("ALPENLICHT_STRIPE_KEY", "")
     key, source, nom = "", "absente", ""
-    if _nettoyer(brut).startswith("sk_"):
+    if _est_cle_secrete(brut):
         key, source = _nettoyer(brut), "environnement"
     else:
         for _n, _v in os.environ.items():
             c = _nettoyer(_v)
-            if c.startswith("sk_live_") or c.startswith("sk_test_"):
+            if any(c.startswith(p) for p in ("sk_live_", "sk_test_", "rk_live_", "rk_test_")):
                 key, source, nom = c, "environnement (autre nom)", _n
                 break
         if not key:
@@ -27541,13 +27547,13 @@ class Handler(BaseHTTPRequestHandler):
                     set_setting("public_url", form["public_url"].rstrip("/"))
                 if form.get("stripe_key"):
                     key = str(form["stripe_key"]).strip()
-                    if key.startswith("sk_"):
+                    if key.startswith("sk_") or key.startswith("rk_"):
                         set_setting("stripe_secret_key", key)
                         log("info", "Clé Stripe enregistrée (mode "
                                     + ("test" if key.startswith("sk_test") else "réel") + ")")
                     else:
                         return self.send_json({"ok": False,
-                                               "error": "La clé doit commencer par sk_"}, 400)
+                                               "error": "La clé doit commencer par sk_ ou rk_"}, 400)
                 if form.get("stripe_key") == "":
                     return self.send_json({"ok": False, "error": "Clé vide"}, 400)
                 log("info", "Identifiants Instagram mis à jour")
