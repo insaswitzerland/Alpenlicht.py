@@ -26763,6 +26763,10 @@ def view_shop():
     <h1>La Suisse,<br>en lumière naturelle.</h1>
     <p>Des paysages des Alpes et du Jura, composés un par un, publiés chaque jour sur Instagram.
        Tirages d'art numériques et guides de randonnée, livrés immédiatement après paiement.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 0">
+      <a class="btn red" href="#tirages">Découvrir les tirages</a>
+      <a class="btn ghost" href="#guides" style="border-color:rgba(245,242,234,.65);color:#f5f2ea">Voir les guides</a>
+    </div>
     <div class="k"><div><b>{len(prods)}</b> produits</div><div><b>4:5</b> haute résolution</div>
       <div><b>PDF</b> livraison instantanée</div></div>
   </div>
@@ -26770,12 +26774,12 @@ def view_shop():
     <div class="lbl">Le Cervin · Valais</div></div>
 </div></section>
 <div class="wrap">
-  <section class="cat"><div class="eyebrow">Tirages d'art</div>
+  <section class="cat" id="tirages" style="scroll-margin-top:80px"><div class="eyebrow">Tirages d'art</div>
     <h2>Images à imprimer, grand format</h2>
     <p class="note">Fichiers 1080 × 1350 px et versions haute résolution, licence personnelle incluse.
        Impression jusqu'à 60 × 75 cm.</p>
     <div class="grid">{''.join(card(p) for p in photos)}</div></section>
-  <section class="cat"><div class="eyebrow">Guides numériques</div>
+  <section class="cat" id="guides" style="scroll-margin-top:80px"><div class="eyebrow">Guides numériques</div>
     <h2>Randonner et photographier</h2>
     <p class="note">Itinéraires testés, horaires de lumière, recettes de post-traitement. PDF immédiat.</p>
     <div class="grid">{''.join(card(p) for p in guides)}</div></section>
